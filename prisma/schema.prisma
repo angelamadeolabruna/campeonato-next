@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+  nombre   String
+}
+
+model Category {
+  id       Int     @id @default(autoincrement())
+  nombre   String  @unique // "Damas" | "Varones"
+  color    String  // "#ec4899" | "#3b82f6"
+  equipos  Team[]
+  partidos Match[]
+}
+
+model Team {
+  id         Int       @id @default(autoincrement())
+  nombre     String
+  categoriaId Int
+  categoria  Category  @relation(fields: [categoriaId], references: [id])
+  logo       String?
+  createdAt  DateTime  @default(now())
+  jugadores  Player[]
+  local      Match[]   @relation("LocalTeam")
+  visitante  Match[]   @relation("VisitanteTeam")
+}
+
+model Player {
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  numero     Int
+  foto       String?
+  equipoId   Int
+  equipo     Team     @relation(fields: [equipoId], references: [id])
+  estado     String   @default("Activo") // Activo | Suspendido | Inhabilitado
+  amarillas  Int      @default(0)
+  rojas      Int      @default(0)
+  suspendidoHasta String? // fecha hasta la que está suspendido (opcional)
+  createdAt  DateTime @default(now())
+  goles      Goal[]
+  tarjetas   Card[]
+  multas     Fine[]
+}
+
+model Jornada {
+  id         Int      @id @default(autoincrement())
+  numero     Int      @unique
+  fecha      String?  // fecha del evento
+  descripcion String?
+  partidos   Match[]
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  jornadaId   Int
+  jornada     Jornada  @relation(fields: [jornadaId], references: [id])
+  localId     Int
+  local       Team     @relation("LocalTeam", fields: [localId], references: [id])
+  visitanteId Int
+  visitante   Team     @relation("VisitanteTeam", fields: [visitanteId], references: [id])
+  categoriaId Int
+  categoria   Category @relation(fields: [categoriaId], references: [id])
+  golesLocal  Int      @default(0)
+  golesVisit  Int      @default(0)
+  hora        String?
+  cancha      String?
+  arbitro     String?
+  jugado      Boolean  @default(false)
+  goles       Goal[]
+  tarjetas    Card[]
+  multas      Fine[]
+}
+
+model Goal {
+  id        Int    @id @default(autoincrement())
+  matchId   Int
+  match     Match  @relation(fields: [matchId], references: [id])
+  jugadorId Int
+  jugador   Player @relation(fields: [jugadorId], references: [id])
+  equipoId  Int
+  cantidad  Int    @default(1)
+}
+
+model Card {
+  id        Int    @id @default(autoincrement())
+  matchId   Int
+  match     Match  @relation(fields: [matchId], references: [id])
+  jugadorId Int
+  jugador   Player @relation(fields: [jugadorId], references: [id])
+  tipo      String // "Amarilla" | "Roja"
+  creadoEn  DateTime @default(now())
+}
+
+model Fine {
+  id        Int      @id @default(autoincrement())
+  jugadorId Int
+  jugador   Player   @relation(fields: [jugadorId], references: [id])
+  monto     Float
+  pagado    Boolean  @default(false)
+  motivo    String   // "Amarilla" | "Roja"
+  matchId   Int?
+  match     Match?   @relation(fields: [matchId], references: [id])
+  creadoEn  DateTime @default(now())
+}

@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  --damas: #ec4899;
+  --varones: #22c55e;
+  --primary: #eab308;
+  --primary-dark: #ca8a04;
+  --primary-light: #fef08a;
+  --secondary: #16a34a;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
