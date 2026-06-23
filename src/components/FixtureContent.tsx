@@ -106,7 +106,7 @@ export default function FixtureContent() {
         const vm = j.partidos.filter((p: any) => p.categoria?.nombre === 'Varones')
         return (
           <div key={j.id} className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">Jornada {j.numero} {j.fecha && <span className="text-sm font-normal text-gray-400">({j.fecha})</span>}</h2>
+            <h2 className="text-lg font-semibold text-gray-700 mb-3">Jornada {j.numero} {j.fecha && <span className="text-sm font-normal text-gray-400">({j.fecha})</span>} {j.descripcion && <span className="text-xs font-normal text-gray-400 ml-1">- {j.descripcion}</span>}</h2>
             {dm.length > 0 && (
               <div className="mb-4">
                 <h3 className="text-sm font-medium text-pink-600 mb-2">DAMAS</h3>
