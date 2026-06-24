@@ -1,15 +1,75 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@theme {
+  --color-sidebar: #0c0a09;
+  --color-sidebar-hover: #1c1917;
+  --color-sidebar-active: #292524;
+  --color-surface: #f5f5f4;
+  --color-card: #ffffff;
+  --color-border: #e7e5e4;
+  --color-amber-accent: #f59e0b;
+  --color-amber-deep: #d97706;
+  --color-damas: #ec4899;
+  --color-varones: #10b981;
+  --color-muted: #a8a29e;
+}
 
 :root {
   --damas: #ec4899;
-  --varones: #22c55e;
-  --primary: #eab308;
-  --primary-dark: #ca8a04;
-  --primary-light: #fef08a;
-  --secondary: #16a34a;
+  --varones: #10b981;
 }
+
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e7e5e4 25%, #d6d3d1 50%, #e7e5e4 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.card-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
+}
+
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.card-shadow-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-shadow-hover:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.table-header-sport {
+  @apply text-[11px] font-semibold uppercase tracking-wider text-stone-500;
+}
+
+.badge-damas {
+  @apply text-[10px] font-semibold uppercase tracking-wider text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full;
+}
+
+.badge-varones {
+  @apply text-[10px] font-semibold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full;
 }

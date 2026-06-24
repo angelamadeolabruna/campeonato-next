@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from './AuthProvider'
+import { motion } from 'framer-motion'
+import { Trophy } from 'lucide-react'
 
 export default function PositionsContent({ initialDamas, initialVarones, initialTopDamas, initialTopVarones }: { initialDamas?: any[], initialVarones?: any[], initialTopDamas?: any[], initialTopVarones?: any[] }) {
   const { token } = useAuth()
@@ -31,93 +33,106 @@ export default function PositionsContent({ initialDamas, initialVarones, initial
 
   const renderGoleadores = (data: any[], title: string, color: string) => (
     <div className="mb-8">
-      <h2 className={`text-lg font-semibold ${color} mb-3`}>Goleadoras - {title}</h2>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <h2 className={`text-xs font-bold uppercase tracking-wider ${color} mb-3 flex items-center gap-2`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${color.includes('pink') ? 'bg-pink-500' : 'bg-emerald-500'}`} />Goleadoras - {title}
+      </h2>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl border border-border overflow-hidden card-shadow-hover">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[300px]">
             <thead>
-              <tr className={`${color.includes('pink') ? 'bg-pink-50' : 'bg-green-50'}`}>
-                <th className="text-center px-2 py-3 w-10">#</th>
-                <th className="text-left px-3 py-3">Jugadora</th>
-                <th className="text-left px-3 py-3">Equipo</th>
-                <th className="text-center px-3 py-3">Goles</th>
+              <tr className={`${color.includes('pink') ? 'bg-pink-50/50' : 'bg-emerald-50/50'} text-[11px] font-semibold uppercase tracking-wider text-stone-500`}>
+                <th className="text-center px-3 py-3 font-medium w-10">#</th>
+                <th className="text-left px-4 py-3 font-medium">Jugadora</th>
+                <th className="text-left px-4 py-3 font-medium">Equipo</th>
+                <th className="text-center px-4 py-3 font-medium">Goles</th>
               </tr>
             </thead>
             <tbody>
               {data.map((g: any, i: number) => (
-                <tr key={i} className="border-t border-gray-50">
-                  <td className="px-2 py-3 text-center font-bold text-gray-400">{i + 1}</td>
-                  <td className="px-3 py-3 font-medium">{g.nombre}</td>
-                  <td className="px-3 py-3 text-gray-600">{g.equipo}</td>
-                  <td className="px-3 py-3 text-center font-bold text-lg">{g.goles}</td>
+                <tr key={i} className={`border-t border-border transition-colors hover:bg-stone-50/50 ${i % 2 === 1 ? 'bg-stone-50/30' : ''}`}>
+                  <td className="px-3 py-3 text-center font-bold text-muted text-xs">{i + 1}</td>
+                  <td className="px-4 py-3 font-semibold text-stone-800">{g.nombre}</td>
+                  <td className="px-4 py-3 text-stone-500">{g.equipo}</td>
+                  <td className="px-4 py-3 text-center font-extrabold text-lg text-stone-800">{g.goles}</td>
                 </tr>
               ))}
               {data.length === 0 && (
-                <tr><td colSpan={4} className="text-center py-6 text-gray-400">Sin goles registrados</td></tr>
+                <tr><td colSpan={4} className="text-center py-8 text-muted text-sm">Sin goles registrados</td></tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 
   const renderTable = (data: any[], title: string, color: string) => (
     <div className="mb-8">
-      <h2 className={`text-lg font-semibold ${color} mb-3`}>{title}</h2>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <h2 className={`text-xs font-bold uppercase tracking-wider ${color} mb-3 flex items-center gap-2`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${color.includes('pink') ? 'bg-pink-500' : 'bg-emerald-500'}`} />{title}
+      </h2>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl border border-border overflow-hidden card-shadow-hover">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[500px]">
+          <table className="w-full text-sm min-w-[550px]">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="text-center px-2 py-3 w-10">#</th>
-                <th className="text-left px-3 py-3">Equipo</th>
-                <th className="text-center px-3 py-3">PJ</th>
-                <th className="text-center px-3 py-3">PG</th>
-                <th className="text-center px-3 py-3">PE</th>
-                <th className="text-center px-3 py-3">PP</th>
-                <th className="text-center px-3 py-3">GF</th>
-                <th className="text-center px-3 py-3">GC</th>
-                <th className="text-center px-3 py-3">DG</th>
+              <tr className="bg-stone-50 text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                <th className="text-center px-3 py-3 font-medium w-10">#</th>
+                <th className="text-left px-4 py-3 font-medium">Equipo</th>
+                <th className="text-center px-3 py-3 font-medium">PJ</th>
+                <th className="text-center px-3 py-3 font-medium">PG</th>
+                <th className="text-center px-3 py-3 font-medium">PE</th>
+                <th className="text-center px-3 py-3 font-medium">PP</th>
+                <th className="text-center px-3 py-3 font-medium">GF</th>
+                <th className="text-center px-3 py-3 font-medium">GC</th>
+                <th className="text-center px-3 py-3 font-medium">DG</th>
                 <th className="text-center px-3 py-3 font-bold">PTS</th>
               </tr>
             </thead>
             <tbody>
               {data.map((e, i) => (
-                <tr key={e.id} className="border-t border-gray-50">
-                  <td className="px-2 py-3 text-center font-bold text-gray-400">{i + 1}</td>
-                  <td className="px-3 py-3 font-medium">{e.nombre}</td>
-                  <td className="px-3 py-3 text-center">{e.pj}</td>
-                  <td className="px-3 py-3 text-center">{e.pg}</td>
-                  <td className="px-3 py-3 text-center">{e.pe}</td>
-                  <td className="px-3 py-3 text-center">{e.pp}</td>
-                  <td className="px-3 py-3 text-center">{e.gf}</td>
-                  <td className="px-3 py-3 text-center">{e.gc}</td>
-                  <td className="px-3 py-3 text-center">{e.dg > 0 ? `+${e.dg}` : e.dg}</td>
-                  <td className="px-3 py-3 text-center font-bold text-lg">{e.puntos}</td>
+                <tr key={e.id} className={`border-t border-border transition-colors hover:bg-stone-50/50 ${i % 2 === 1 ? 'bg-stone-50/30' : ''}`}>
+                  <td className="px-3 py-3 text-center font-bold text-muted text-xs">{i + 1}</td>
+                  <td className="px-4 py-3 font-semibold text-stone-800">{e.nombre}</td>
+                  <td className="px-3 py-3 text-center text-stone-600">{e.pj}</td>
+                  <td className="px-3 py-3 text-center text-stone-600">{e.pg}</td>
+                  <td className="px-3 py-3 text-center text-stone-600">{e.pe}</td>
+                  <td className="px-3 py-3 text-center text-stone-600">{e.pp}</td>
+                  <td className="px-3 py-3 text-center text-stone-600">{e.gf}</td>
+                  <td className="px-3 py-3 text-center text-stone-600">{e.gc}</td>
+                  <td className={`px-3 py-3 text-center font-semibold ${e.dg > 0 ? 'text-emerald-600' : e.dg < 0 ? 'text-red-500' : 'text-stone-600'}`}>{e.dg > 0 ? `+${e.dg}` : e.dg}</td>
+                  <td className="px-3 py-3 text-center font-extrabold text-base text-stone-800">{e.puntos}</td>
                 </tr>
               ))}
               {data.length === 0 && (
-                <tr><td colSpan={10} className="text-center py-6 text-gray-400">Sin datos</td></tr>
+                <tr><td colSpan={10} className="text-center py-8 text-muted text-sm">Sin datos</td></tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 
-  if (loading) return <p className="text-gray-500">Cargando...</p>
+  if (loading) return (
+    <div className="space-y-6">
+      <div className="skeleton h-7 w-48" />
+      <div className="bg-white rounded-xl border border-border p-5"><div className="skeleton h-[220px] w-full" /></div>
+      <div className="bg-white rounded-xl border border-border p-5"><div className="skeleton h-[220px] w-full" /></div>
+    </div>
+  )
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Tabla de Posiciones</h1>
-      {renderTable(damas, 'DAMAS', 'text-pink-600')}
-      {renderTable(varones, 'VARONES', 'text-green-600')}
+      <div className="flex items-center gap-3 mb-6">
+        <Trophy size={22} className="text-amber-accent" />
+        <h1 className="text-xl font-extrabold text-stone-800 tracking-tight">Tabla de Posiciones</h1>
+      </div>
+      {renderTable(damas, 'DAMAS', 'text-pink-500')}
+      {renderTable(varones, 'VARONES', 'text-emerald-500')}
 
-      <h2 className="text-xl font-bold text-gray-800 mb-4 mt-10">Goleadoras</h2>
-      {renderGoleadores(topDamas, 'Damas', 'text-pink-600')}
-      {renderGoleadores(topVarones, 'Varones', 'text-green-600')}
+      <h2 className="text-base font-extrabold text-stone-800 mb-4 mt-2 tracking-tight">Goleadoras</h2>
+      {renderGoleadores(topDamas, 'Damas', 'text-pink-500')}
+      {renderGoleadores(topVarones, 'Varones', 'text-emerald-500')}
     </div>
   )
 }

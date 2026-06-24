@@ -9,12 +9,15 @@
     "seed": "npx tsx prisma/seed.ts",
     "postinstall": "npx prisma generate"
   },
-  "prisma": { "seed": "npx tsx prisma/seed.ts" },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^5.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "bcryptjs": "^2.4.3",
     "docx": "^8.2.0",
+    "framer-motion": "^12.41.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.1",
