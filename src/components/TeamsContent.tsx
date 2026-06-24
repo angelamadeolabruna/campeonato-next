@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { useAuth } from './AuthProvider'
 import { getFlag } from '@/lib/flags'
+import { useDialog } from './ConfirmDialog'
 
 export default function TeamsContent() {
   const { token } = useAuth()
+  const dialog = useDialog()
   const [teams, setTeams] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,7 +36,7 @@ export default function TeamsContent() {
       method: editing ? 'PUT' : 'POST',
       headers, body: JSON.stringify(form),
     })
-    if (!res.ok) { alert('Error al guardar: ' + (await res.text())); return }
+    if (!res.ok) { dialog.alert({ title: 'Error al guardar', message: await res.text() }); return }
     setShowModal(false)
     setEditing(null)
     setForm({ nombre: '', categoriaId: 1, logo: '' })
@@ -42,11 +44,16 @@ export default function TeamsContent() {
   }
 
   const handleDelete = async (id: number) => {
-    if (confirm('¿Eliminar equipo? Se borrarán todos sus datos.')) {
-      const r = await fetch(`/api/teams/${id}`, { method: 'DELETE', headers })
-      if (!r.ok) { alert('Error al eliminar: ' + (await r.text())); return }
-      load()
-    }
+    dialog.confirm({
+      title: 'Eliminar Equipo',
+      message: '¿Eliminar equipo? Se borrarán todos sus datos (jugadores, partidos, estadísticas).',
+      confirmText: 'Eliminar',
+      onConfirm: async () => {
+        const r = await fetch(`/api/teams/${id}`, { method: 'DELETE', headers })
+        if (!r.ok) { dialog.alert({ title: 'Error al eliminar', message: await r.text() }); return }
+        load()
+      }
+    })
   }
 
   if (loading) return <p className="text-gray-500">Cargando...</p>

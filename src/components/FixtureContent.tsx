@@ -3,14 +3,17 @@
 import { useEffect, useState } from 'react'
 import { Edit2, Trash2, Plus } from 'lucide-react'
 import { useAuth } from './AuthProvider'
+import { useDialog } from './ConfirmDialog'
 
 export default function FixtureContent() {
   const { token } = useAuth()
+  const dialog = useDialog()
   const [jornadas, setJornadas] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [teams, setTeams] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   
+  const [expandedId, setExpandedId] = useState<number | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editMatch, setEditMatch] = useState<any>(null)
   const [form, setForm] = useState({ hora: '', cancha: '', arbitro: '' })
@@ -37,16 +40,44 @@ export default function FixtureContent() {
   
   useEffect(() => { load() }, [])
 
-  const handleGenerate = async () => {
-    if (!confirm('¿Generar fixture para las siguientes jornadas?')) return
-    await fetch('/api/fixture/generar', { method: 'POST', headers })
-    load()
+  const handleGeneratePrimera = async () => {
+    dialog.confirm({
+      title: 'Generar Primera Rueda',
+      message: '¿Generar los partidos pendientes de la Primera Rueda (ida)?',
+      confirmText: 'Generar',
+      onConfirm: async () => {
+        const res = await fetch('/api/fixture/generar?rueda=primera', { method: 'POST', headers })
+        const data = await res.json()
+        if (data.error) dialog.alert({ title: 'Error', message: data.error })
+        load()
+      }
+    })
+  }
+
+  const handleGenerateSegunda = async () => {
+    dialog.confirm({
+      title: 'Generar Segunda Rueda',
+      message: '¿Generar los partidos pendientes de la Segunda Rueda (vuelta)?',
+      confirmText: 'Generar',
+      onConfirm: async () => {
+        const res = await fetch('/api/fixture/generar?rueda=segunda', { method: 'POST', headers })
+        const data = await res.json()
+        if (data.error) dialog.alert({ title: 'Error', message: data.error })
+        load()
+      }
+    })
   }
 
   const handleClear = async () => {
-    if (!confirm('¿ESTÁS SEGURO? Esto borrará TODOS los partidos y jornadas existentes.')) return
-    await fetch('/api/fixture', { method: 'DELETE', headers })
-    load()
+    dialog.confirm({
+      title: 'Limpiar Todo',
+      message: '¿ESTÁS SEGURO? Esto borrará TODOS los partidos y jornadas existentes.',
+      confirmText: 'Eliminar Todo',
+      onConfirm: async () => {
+        await fetch('/api/fixture', { method: 'DELETE', headers })
+        load()
+      }
+    })
   }
 
   const handleSaveMatch = async () => {
@@ -60,18 +91,18 @@ export default function FixtureContent() {
 
   const handleAddManualMatch = async () => {
     if (!addForm.jornadaNumero || !addForm.categoriaId || !addForm.localId || !addForm.visitanteId) {
-      alert('Por favor completa todos los campos')
+      dialog.alert({ title: 'Campos incompletos', message: 'Por favor completa todos los campos' })
       return
     }
     if (addForm.localId === addForm.visitanteId) {
-      alert('Un equipo no puede jugar contra sí mismo')
+      dialog.alert({ title: 'Equipo inválido', message: 'Un equipo no puede jugar contra sí mismo' })
       return
     }
     
     const res = await fetch('/api/fixture/partido', { method: 'POST', headers, body: JSON.stringify(addForm) })
     if (!res.ok) {
       const data = await res.json()
-      alert(data.error || 'Error al guardar el partido')
+      dialog.alert({ title: 'Error', message: data.error || 'Error al guardar el partido' })
       return
     }
     
@@ -92,8 +123,11 @@ export default function FixtureContent() {
           <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 flex items-center gap-2">
             <Plus size={16} /> Agregar Partido Manual
           </button>
-          <button onClick={handleGenerate} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
-            Generar Siguientes Jornadas
+          <button onClick={handleGeneratePrimera} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+            Generar Primera Rueda
+          </button>
+          <button onClick={handleGenerateSegunda} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+            Generar Segunda Rueda
           </button>
           <button onClick={handleClear} className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 flex items-center gap-2">
             <Trash2 size={16} /> Limpiar Todo
@@ -104,67 +138,175 @@ export default function FixtureContent() {
       {jornadas.map(j => {
         const dm = j.partidos.filter((p: any) => p.categoria?.nombre === 'Damas')
         const vm = j.partidos.filter((p: any) => p.categoria?.nombre === 'Varones')
+
+        const equiposEnPartidoDamas = new Set(dm.flatMap((p: any) => [p.localId, p.visitanteId]))
+        const equiposEnPartidoVarones = new Set(vm.flatMap((p: any) => [p.localId, p.visitanteId]))
+        const descansanDamas = teams.filter((t: any) => t.categoria?.nombre === 'Damas' && !equiposEnPartidoDamas.has(t.id))
+        const descansanVarones = teams.filter((t: any) => t.categoria?.nombre === 'Varones' && !equiposEnPartidoVarones.has(t.id))
+
         return (
           <div key={j.id} className="mb-8">
             <h2 className="text-lg font-semibold text-gray-700 mb-3">Jornada {j.numero} {j.fecha && <span className="text-sm font-normal text-gray-400">({j.fecha})</span>} {j.descripcion && <span className="text-xs font-normal text-gray-400 ml-1">- {j.descripcion}</span>}</h2>
-            {dm.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-pink-600 mb-2">DAMAS</h3>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-pink-600 mb-2">DAMAS</h3>
+              {dm.length > 0 ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-2">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[500px]">
                       <thead><tr className="bg-pink-50 text-pink-700">
                         <th className="text-left px-3 py-2">Local</th><th className="text-center px-3 py-2">vs</th>
                         <th className="text-left px-3 py-2">Visitante</th><th className="text-center px-3 py-2">Resultado</th>
+                        <th className="text-center px-3 py-2">Goles</th>
                         <th className="text-center px-3 py-2">Hora</th><th className="text-center px-3 py-2">Cancha</th><th className="text-center px-3 py-2"></th>
                       </tr></thead>
-                      <tbody>{dm.map((m: any) => (
-                        <tr key={m.id} className="border-t border-gray-50">
-                          <td className="px-3 py-2 font-medium">{m.local?.nombre}</td>
-                          <td className="px-3 py-2 text-center text-gray-400">vs</td>
-                          <td className="px-3 py-2">{m.visitante?.nombre}</td>
-                          <td className="px-3 py-2 text-center font-medium">{m.jugado ? `${m.golesLocal} - ${m.golesVisit}` : '-'}</td>
-                          <td className="px-3 py-2 text-center">{m.hora || '-'}</td>
-                          <td className="px-3 py-2 text-center">{m.cancha || '-'}</td>
-                          <td className="px-3 py-2 text-center">
-                            {!m.jugado && <button onClick={() => { setEditMatch(m); setForm({ hora: m.hora || '', cancha: m.cancha || '', arbitro: m.arbitro || '' }); setShowEditModal(true) }} className="p-1 text-yellow-600 hover:text-yellow-700"><Edit2 size={14} /></button>}
-                          </td>
-                        </tr>
-                      ))}</tbody>
+                      <tbody>{dm.flatMap((m: any) => {
+                        const golesLocal = m.goles?.filter((g: any) => g.equipoId === m.localId) || []
+                        const golesVisit = m.goles?.filter((g: any) => g.equipoId === m.visitanteId) || []
+                        const tarjetas = m.tarjetas || []
+                        const isExpanded = expandedId === m.id
+                        const total = golesLocal.length + golesVisit.length
+                        return [
+                          <tr key={m.id} className="border-t border-gray-50">
+                            <td className="px-3 py-2 font-medium">{m.local?.nombre}</td>
+                            <td className="px-3 py-2 text-center text-gray-400">vs</td>
+                            <td className="px-3 py-2">{m.visitante?.nombre}</td>
+                            <td className="px-3 py-2 text-center font-medium">{m.jugado ? `${m.golesLocal} - ${m.golesVisit}` : '-'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {m.jugado ? (
+                                <button onClick={() => setExpandedId(isExpanded ? null : m.id)} className="text-xs text-gray-500 hover:text-gray-700 underline">
+                                  {isExpanded ? 'Ocultar' : `${total} gol(es)`}
+                                </button>
+                              ) : '-'}
+                            </td>
+                            <td className="px-3 py-2 text-center">{m.hora || '-'}</td>
+                            <td className="px-3 py-2 text-center">{m.cancha || '-'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {!m.jugado && <button onClick={() => { setEditMatch(m); setForm({ hora: m.hora || '', cancha: m.cancha || '', arbitro: m.arbitro || '' }); setShowEditModal(true) }} className="p-1 text-yellow-600 hover:text-yellow-700"><Edit2 size={14} /></button>}
+                            </td>
+                          </tr>,
+                          isExpanded ? (
+                            <tr key={`${m.id}-detalle`}>
+                              <td colSpan={8} className="px-3 pb-3">
+                                <div className="bg-pink-50 rounded-lg p-3 text-xs space-y-1">
+                                  {golesLocal.length > 0 && (
+                                    <div><span className="font-semibold text-gray-700">{m.local?.nombre}: </span>{golesLocal.map((g: any, i: number) => (
+                                      <span key={i} className="text-gray-600">{g.jugador?.nombre}{g.cantidad > 1 ? ` (${g.cantidad})` : ''}{i < golesLocal.length - 1 ? ', ' : ''}</span>
+                                    ))}</div>
+                                  )}
+                                  {golesVisit.length > 0 && (
+                                    <div><span className="font-semibold text-gray-700">{m.visitante?.nombre}: </span>{golesVisit.map((g: any, i: number) => (
+                                      <span key={i} className="text-gray-600">{g.jugador?.nombre}{g.cantidad > 1 ? ` (${g.cantidad})` : ''}{i < golesVisit.length - 1 ? ', ' : ''}</span>
+                                    ))}</div>
+                                  )}
+                                  {tarjetas.length > 0 && (
+                                    <div><span className="font-semibold text-gray-700">Tarjetas: </span>{tarjetas.map((c: any, i: number) => (
+                                      <span key={i} className={c.tipo === 'Roja' ? 'text-red-600' : 'text-yellow-600'}>
+                                        {c.tipo === 'Amarilla' ? '🟡' : '🔴'} {c.jugador?.nombre}{c.jugador?.equipo?.nombre ? ` (${c.jugador.equipo.nombre})` : ''}{i < tarjetas.length - 1 ? ' | ' : ''}
+                                      </span>
+                                    ))}</div>
+                                  )}
+                                  {total === 0 && tarjetas.length === 0 && (
+                                    <p className="text-gray-400 italic">Sin goles ni tarjetas</p>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ) : null,
+                        ]
+                      })}</tbody>
                     </table>
                   </div>
                 </div>
-              </div>
-            )}
-            {vm.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-green-600 mb-2">VARONES</h3>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              ) : descansanDamas.length > 0 ? (
+                <div className="bg-pink-50 rounded-xl border border-pink-200 p-3 mb-2">
+                  <p className="text-xs text-pink-500 italic font-medium">Jornada de descanso colectivo</p>
+                  <p className="text-xs text-pink-400 italic">Descansan: {descansanDamas.map((t: any) => t.nombre).join(', ')}</p>
+                </div>
+              ) : null}
+              {dm.length > 0 && descansanDamas.length > 0 && (
+                <p className="text-xs text-pink-400 italic">Descansan: {descansanDamas.map((t: any) => t.nombre).join(', ')}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-green-600 mb-2">VARONES</h3>
+              {vm.length > 0 ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-2">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[500px]">
                       <thead><tr className="bg-green-50 text-green-700">
                         <th className="text-left px-3 py-2">Local</th><th className="text-center px-3 py-2">vs</th>
                         <th className="text-left px-3 py-2">Visitante</th><th className="text-center px-3 py-2">Resultado</th>
+                        <th className="text-center px-3 py-2">Goles</th>
                         <th className="text-center px-3 py-2">Hora</th><th className="text-center px-3 py-2">Cancha</th><th className="text-center px-3 py-2"></th>
                       </tr></thead>
-                      <tbody>{vm.map((m: any) => (
-                        <tr key={m.id} className="border-t border-gray-50">
-                          <td className="px-3 py-2 font-medium">{m.local?.nombre}</td>
-                          <td className="px-3 py-2 text-center text-gray-400">vs</td>
-                          <td className="px-3 py-2">{m.visitante?.nombre}</td>
-                          <td className="px-3 py-2 text-center font-medium">{m.jugado ? `${m.golesLocal} - ${m.golesVisit}` : '-'}</td>
-                          <td className="px-3 py-2 text-center">{m.hora || '-'}</td>
-                          <td className="px-3 py-2 text-center">{m.cancha || '-'}</td>
-                          <td className="px-3 py-2 text-center">
-                            {!m.jugado && <button onClick={() => { setEditMatch(m); setForm({ hora: m.hora || '', cancha: m.cancha || '', arbitro: m.arbitro || '' }); setShowEditModal(true) }} className="p-1 text-yellow-600 hover:text-yellow-700"><Edit2 size={14} /></button>}
-                          </td>
-                        </tr>
-                      ))}</tbody>
+                      <tbody>{vm.flatMap((m: any) => {
+                        const golesLocal = m.goles?.filter((g: any) => g.equipoId === m.localId) || []
+                        const golesVisit = m.goles?.filter((g: any) => g.equipoId === m.visitanteId) || []
+                        const tarjetas = m.tarjetas || []
+                        const isExpanded = expandedId === m.id
+                        const total = golesLocal.length + golesVisit.length
+                        return [
+                          <tr key={m.id} className="border-t border-gray-50">
+                            <td className="px-3 py-2 font-medium">{m.local?.nombre}</td>
+                            <td className="px-3 py-2 text-center text-gray-400">vs</td>
+                            <td className="px-3 py-2">{m.visitante?.nombre}</td>
+                            <td className="px-3 py-2 text-center font-medium">{m.jugado ? `${m.golesLocal} - ${m.golesVisit}` : '-'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {m.jugado ? (
+                                <button onClick={() => setExpandedId(isExpanded ? null : m.id)} className="text-xs text-gray-500 hover:text-gray-700 underline">
+                                  {isExpanded ? 'Ocultar' : `${total} gol(es)`}
+                                </button>
+                              ) : '-'}
+                            </td>
+                            <td className="px-3 py-2 text-center">{m.hora || '-'}</td>
+                            <td className="px-3 py-2 text-center">{m.cancha || '-'}</td>
+                            <td className="px-3 py-2 text-center">
+                              {!m.jugado && <button onClick={() => { setEditMatch(m); setForm({ hora: m.hora || '', cancha: m.cancha || '', arbitro: m.arbitro || '' }); setShowEditModal(true) }} className="p-1 text-yellow-600 hover:text-yellow-700"><Edit2 size={14} /></button>}
+                            </td>
+                          </tr>,
+                          isExpanded ? (
+                            <tr key={`${m.id}-detalle`}>
+                              <td colSpan={8} className="px-3 pb-3">
+                                <div className="bg-green-50 rounded-lg p-3 text-xs space-y-1">
+                                  {golesLocal.length > 0 && (
+                                    <div><span className="font-semibold text-gray-700">{m.local?.nombre}: </span>{golesLocal.map((g: any, i: number) => (
+                                      <span key={i} className="text-gray-600">{g.jugador?.nombre}{g.cantidad > 1 ? ` (${g.cantidad})` : ''}{i < golesLocal.length - 1 ? ', ' : ''}</span>
+                                    ))}</div>
+                                  )}
+                                  {golesVisit.length > 0 && (
+                                    <div><span className="font-semibold text-gray-700">{m.visitante?.nombre}: </span>{golesVisit.map((g: any, i: number) => (
+                                      <span key={i} className="text-gray-600">{g.jugador?.nombre}{g.cantidad > 1 ? ` (${g.cantidad})` : ''}{i < golesVisit.length - 1 ? ', ' : ''}</span>
+                                    ))}</div>
+                                  )}
+                                  {tarjetas.length > 0 && (
+                                    <div><span className="font-semibold text-gray-700">Tarjetas: </span>{tarjetas.map((c: any, i: number) => (
+                                      <span key={i} className={c.tipo === 'Roja' ? 'text-red-600' : 'text-yellow-600'}>
+                                        {c.tipo === 'Amarilla' ? '🟡' : '🔴'} {c.jugador?.nombre}{c.jugador?.equipo?.nombre ? ` (${c.jugador.equipo.nombre})` : ''}{i < tarjetas.length - 1 ? ' | ' : ''}
+                                      </span>
+                                    ))}</div>
+                                  )}
+                                  {total === 0 && tarjetas.length === 0 && (
+                                    <p className="text-gray-400 italic">Sin goles ni tarjetas</p>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ) : null,
+                        ]
+                      })}</tbody>
                     </table>
                   </div>
                 </div>
-              </div>
-            )}
+              ) : descansanVarones.length > 0 ? (
+                <div className="bg-green-50 rounded-xl border border-green-200 p-3 mb-2">
+                  <p className="text-xs text-green-500 italic font-medium">Jornada de descanso colectivo</p>
+                  <p className="text-xs text-green-400 italic">Descansan: {descansanVarones.map((t: any) => t.nombre).join(', ')}</p>
+                </div>
+              ) : null}
+              {vm.length > 0 && descansanVarones.length > 0 && (
+                <p className="text-xs text-green-400 italic">Descansan: {descansanVarones.map((t: any) => t.nombre).join(', ')}</p>
+              )}
+            </div>
           </div>
         )
       })}

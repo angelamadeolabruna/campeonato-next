@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
           local: { select: { id: true, nombre: true } },
           visitante: { select: { id: true, nombre: true } },
           categoria: { select: { id: true, nombre: true, color: true } },
+          goles: { include: { jugador: { select: { id: true, nombre: true } } } },
+          tarjetas: { include: { jugador: { select: { id: true, nombre: true, equipo: { select: { nombre: true } } } } } },
         },
         orderBy: { id: 'asc' },
       },

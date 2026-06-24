@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from './AuthProvider'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import VoiceAssistant from './VoiceAssistant'
 
 interface DashboardData {
   kpis: any; golesPorFecha: any[]; tarjetas: any
@@ -191,6 +192,13 @@ export default function Dashboard() {
           ) : <p className="text-gray-400 text-sm">No hay partidos programados</p>}
         </div>
       </div>
+
+      <VoiceAssistant
+        data={data}
+        categoria={categoria}
+        setCategoria={setCategoria}
+        categories={categories}
+      />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
+import { DialogProvider } from '@/components/ConfirmDialog'
 
 export const metadata = {
   title: 'Campeonato de Fútbol - Administración',
@@ -10,7 +11,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <DialogProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </DialogProvider>
       </body>
     </html>
   )

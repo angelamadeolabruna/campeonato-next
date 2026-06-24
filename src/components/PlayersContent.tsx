@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { useAuth } from './AuthProvider'
+import { useDialog } from './ConfirmDialog'
 
 export default function PlayersContent() {
   const { token } = useAuth()
+  const dialog = useDialog()
   const [players, setPlayers] = useState<any[]>([])
   const [teams, setTeams] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,12 +41,21 @@ export default function PlayersContent() {
       method: editing ? 'PUT' : 'POST',
       headers, body: JSON.stringify(form),
     })
-    if (!r.ok) { alert('Error: ' + (await r.text())); return }
+    if (!r.ok) { dialog.alert({ title: 'Error', message: await r.text() }); return }
     setShowModal(false); setEditing(null); setForm({ nombre: '', numero: 1, equipoId: 0, foto: '' }); load()
   }
 
   const handleDelete = async (id: number) => {
-    if (confirm('¿Eliminar jugador?')) { const r = await fetch(`/api/players/${id}`, { method: 'DELETE', headers }); if (!r.ok) { alert('Error: ' + (await r.text())); return }; load() }
+    dialog.confirm({
+      title: 'Eliminar Jugador',
+      message: '¿Eliminar jugador? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      onConfirm: async () => {
+        const r = await fetch(`/api/players/${id}`, { method: 'DELETE', headers })
+        if (!r.ok) { dialog.alert({ title: 'Error', message: await r.text() }); return }
+        load()
+      }
+    })
   }
 
   const ec = (estado: string) => {

@@ -7,20 +7,59 @@ export default function PositionsContent() {
   const { token } = useAuth()
   const [damas, setDamas] = useState<any[]>([])
   const [varones, setVarones] = useState<any[]>([])
+  const [topDamas, setTopDamas] = useState<any[]>([])
+  const [topVarones, setTopVarones] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const headers = { Authorization: `Bearer ${token}` }
 
   useEffect(() => {
-    fetch('/api/teams/positions', { headers })
-      .then(r => r.json())
-      .then((data) => {
-        setDamas((data.damas || []).sort((a: any, b: any) => b.puntos - a.puntos || (b.dg - a.dg)))
-        setVarones((data.varones || []).sort((a: any, b: any) => b.puntos - a.puntos || (b.dg - a.dg)))
+    Promise.all([
+      fetch('/api/teams/positions', { headers }).then(r => r.json()),
+      fetch('/api/dashboard', { headers }).then(r => r.json()),
+    ])
+      .then(([pos, dash]) => {
+        setDamas((pos.damas || []).sort((a: any, b: any) => b.puntos - a.puntos || (b.dg - a.dg)))
+        setVarones((pos.varones || []).sort((a: any, b: any) => b.puntos - a.puntos || (b.dg - a.dg)))
+        setTopDamas(dash.topGoleadores?.damas || [])
+        setTopVarones(dash.topGoleadores?.varones || [])
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  const renderGoleadores = (data: any[], title: string, color: string) => (
+    <div className="mb-8">
+      <h2 className={`text-lg font-semibold ${color} mb-3`}>Goleadoras - {title}</h2>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[300px]">
+            <thead>
+              <tr className={`${color.includes('pink') ? 'bg-pink-50' : 'bg-green-50'}`}>
+                <th className="text-center px-2 py-3 w-10">#</th>
+                <th className="text-left px-3 py-3">Jugadora</th>
+                <th className="text-left px-3 py-3">Equipo</th>
+                <th className="text-center px-3 py-3">Goles</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((g: any, i: number) => (
+                <tr key={i} className="border-t border-gray-50">
+                  <td className="px-2 py-3 text-center font-bold text-gray-400">{i + 1}</td>
+                  <td className="px-3 py-3 font-medium">{g.nombre}</td>
+                  <td className="px-3 py-3 text-gray-600">{g.equipo}</td>
+                  <td className="px-3 py-3 text-center font-bold text-lg">{g.goles}</td>
+                </tr>
+              ))}
+              {data.length === 0 && (
+                <tr><td colSpan={4} className="text-center py-6 text-gray-400">Sin goles registrados</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
 
   const renderTable = (data: any[], title: string, color: string) => (
     <div className="mb-8">
@@ -74,6 +113,10 @@ export default function PositionsContent() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Tabla de Posiciones</h1>
       {renderTable(damas, 'DAMAS', 'text-pink-600')}
       {renderTable(varones, 'VARONES', 'text-green-600')}
+
+      <h2 className="text-xl font-bold text-gray-800 mb-4 mt-10">Goleadoras</h2>
+      {renderGoleadores(topDamas, 'Damas', 'text-pink-600')}
+      {renderGoleadores(topVarones, 'Varones', 'text-green-600')}
     </div>
   )
 }
