@@ -65,9 +65,17 @@ export async function GET(request: NextRequest) {
     }
 
     const goalsGrouped = await prisma.goal.groupBy({ by: ['jugadorId', 'equipoId'], _sum: { cantidad: true }, orderBy: { _sum: { cantidad: 'desc' } }, take: 20 })
+    const playerIds = goalsGrouped.map(g => g.jugadorId)
+    const players = playerIds.length > 0
+      ? await prisma.player.findMany({
+          where: { id: { in: playerIds } },
+          include: { equipo: { include: { categoria: true } } },
+        })
+      : []
+    const playerMap = new Map(players.map(p => [p.id, p]))
     const topGoleadores: any[] = []
     for (const g of goalsGrouped) {
-      const player = await prisma.player.findUnique({ where: { id: g.jugadorId }, include: { equipo: { include: { categoria: true } } } })
+      const player = playerMap.get(g.jugadorId)
       if (player) topGoleadores.push({ id: player.id, nombre: player.nombre, equipo: player.equipo.nombre, categoria: player.equipo.categoria.nombre, goles: g._sum.cantidad || 0 })
     }
 
