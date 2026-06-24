@@ -5,13 +5,13 @@ import { Edit2, Trash2, Plus } from 'lucide-react'
 import { useAuth } from './AuthProvider'
 import { useDialog } from './ConfirmDialog'
 
-export default function FixtureContent() {
+export default function FixtureContent({ initialJornadas, initialCategories, initialTeams }: { initialJornadas?: any[], initialCategories?: any[], initialTeams?: any[] }) {
   const { token } = useAuth()
   const dialog = useDialog()
-  const [jornadas, setJornadas] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [teams, setTeams] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [jornadas, setJornadas] = useState<any[]>(initialJornadas || [])
+  const [categories, setCategories] = useState<any[]>(initialCategories || [])
+  const [teams, setTeams] = useState<any[]>(initialTeams || [])
+  const [loading, setLoading] = useState(!initialJornadas)
   
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -38,7 +38,7 @@ export default function FixtureContent() {
     .finally(() => setLoading(false))
   }
   
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (!initialJornadas) load() }, [])
 
   const handleGeneratePrimera = async () => {
     dialog.confirm({

@@ -5,12 +5,12 @@ import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { useAuth } from './AuthProvider'
 import { useDialog } from './ConfirmDialog'
 
-export default function PlayersContent() {
+export default function PlayersContent({ initialPlayers, initialTeams }: { initialPlayers?: any[], initialTeams?: any[] }) {
   const { token } = useAuth()
   const dialog = useDialog()
-  const [players, setPlayers] = useState<any[]>([])
-  const [teams, setTeams] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [players, setPlayers] = useState<any[]>(initialPlayers || [])
+  const [teams, setTeams] = useState<any[]>(initialTeams || [])
+  const [loading, setLoading] = useState(!initialPlayers)
   const [filter, setFilter] = useState<'all' | 'damas' | 'varones'>('all')
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<any>(null)
@@ -28,7 +28,7 @@ export default function PlayersContent() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (!initialPlayers) load() }, [])
 
   const filtered = players.filter(p => {
     if (filter === 'damas') return p.equipo?.categoria?.nombre === 'Damas'

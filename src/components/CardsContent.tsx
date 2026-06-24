@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from './AuthProvider'
 
-export default function CardsContent() {
+export default function CardsContent({ initialData }: { initialData?: any[] }) {
   const { token } = useAuth()
-  const [data, setData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<any[]>(initialData || [])
+  const [loading, setLoading] = useState(!initialData)
 
   const headers = { Authorization: `Bearer ${token}` }
 
   useEffect(() => {
+    if (initialData) return
     fetch('/api/cards', { headers })
       .then(r => r.json())
       .then(setData)

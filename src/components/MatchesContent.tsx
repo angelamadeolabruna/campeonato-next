@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react'
 import { useAuth } from './AuthProvider'
 import { useDialog } from './ConfirmDialog'
 
-export default function MatchesContent() {
+export default function MatchesContent({ initialMatches }: { initialMatches?: any[] }) {
   const { token } = useAuth()
   const dialog = useDialog()
-  const [matches, setMatches] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [matches, setMatches] = useState<any[]>(initialMatches || [])
+  const [loading, setLoading] = useState(!initialMatches)
   const [showModal, setShowModal] = useState(false)
   const [currentMatch, setCurrentMatch] = useState<any>(null)
   const [expandedId, setExpandedId] = useState<number | null>(null)
@@ -20,7 +20,7 @@ export default function MatchesContent() {
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
   const load = () => fetch('/api/matches', { headers }).then(r => r.json()).then(setMatches).catch(console.error).finally(() => setLoading(false))
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (!initialMatches) load() }, [])
 
   const openResultado = async (m: any) => {
     setSaveError('')

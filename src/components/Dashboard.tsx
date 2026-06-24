@@ -12,17 +12,18 @@ interface DashboardData {
   masIndisciplinado: any; proximoPartido: any; alertas: any
 }
 
-export default function Dashboard() {
+export default function Dashboard({ initialData, initialCategories }: { initialData?: DashboardData | null, initialCategories?: any[] }) {
   const { token: authToken } = useAuth()
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [categories, setCategories] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<DashboardData | null>(initialData || null)
+  const [categories, setCategories] = useState<any[]>(initialCategories || [])
+  const [loading, setLoading] = useState(!initialData)
   const [categoria, setCategoria] = useState('todas')
 
   useEffect(() => {
+    if (initialCategories?.length) return
     fetch('/api/categories', { headers: { Authorization: `Bearer ${authToken}` } })
       .then(r => r.json()).then(setCategories).catch(() => {})
-  }, [authToken])
+  }, [authToken, initialCategories])
 
   useEffect(() => {
     if (!authToken) return

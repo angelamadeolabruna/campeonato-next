@@ -6,15 +6,15 @@ import { useAuth } from './AuthProvider'
 import { getFlag } from '@/lib/flags'
 import { useDialog } from './ConfirmDialog'
 
-export default function TeamsContent() {
+export default function TeamsContent({ initialTeams, initialCategories }: { initialTeams?: any[], initialCategories?: any[] }) {
   const { token } = useAuth()
   const dialog = useDialog()
-  const [teams, setTeams] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [teams, setTeams] = useState<any[]>(initialTeams || [])
+  const [categories, setCategories] = useState<any[]>(initialCategories || [])
+  const [loading, setLoading] = useState(!initialTeams)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState({ nombre: '', categoriaId: 1, logo: '' })
+  const [form, setForm] = useState({ nombre: '', categoriaId: initialCategories?.[0]?.id || 1, logo: '' })
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
@@ -29,7 +29,7 @@ export default function TeamsContent() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (!initialTeams) load() }, [])
 
   const handleSave = async () => {
     const res = await fetch(`/api/teams${editing ? `/${editing.id}` : ''}`, {

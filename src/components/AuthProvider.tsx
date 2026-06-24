@@ -20,13 +20,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const t = localStorage.getItem('token')
+    const lsToken = localStorage.getItem('token')
+    const cookieToken = document.cookie.split('; ').find(c => c.startsWith('token='))?.split('=')[1]
+    const t = lsToken || cookieToken
     if (t) {
       setToken(t)
+      if (!lsToken) localStorage.setItem('token', t)
       fetch('/api/auth/me', { headers: { Authorization: `Bearer ${t}` } })
         .then(r => { if (!r.ok) throw new Error('Token inválido'); return r.json() })
         .then(u => { setUser(u); setLoading(false) })
-        .catch(() => { localStorage.removeItem('token'); setToken(null); setLoading(false) })
+        .catch(() => { localStorage.removeItem('token'); document.cookie = 'token=; path=/; max-age=0'; setToken(null); setLoading(false) })
     } else setLoading(false)
   }, [])
 
@@ -41,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('token')
+    document.cookie = 'token=; path=/; max-age=0'
     setToken(null)
     setUser(null)
   }

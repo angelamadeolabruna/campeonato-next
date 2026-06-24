@@ -8,6 +8,18 @@ export function generateToken(userId: number): string {
 }
 
 export function getUserIdFromToken(request: NextRequest): number | null {
+  // Check x-auth-token from middleware (cookie forwarded to API routes)
+  const tokenFromCookie = request.headers.get('x-auth-token')
+  if (tokenFromCookie) {
+    try {
+      const decoded = jwt.verify(tokenFromCookie, JWT_SECRET) as { userId: number }
+      return decoded.userId
+    } catch {
+      // Token invalid - fall through to Authorization header
+    }
+  }
+
+  // Fall back to Authorization header (client-side API calls)
   const authHeader = request.headers.get('authorization')
   const token = authHeader?.split(' ')[1]
   if (!token) return null

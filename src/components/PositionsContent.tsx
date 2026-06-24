@@ -3,17 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from './AuthProvider'
 
-export default function PositionsContent() {
+export default function PositionsContent({ initialDamas, initialVarones, initialTopDamas, initialTopVarones }: { initialDamas?: any[], initialVarones?: any[], initialTopDamas?: any[], initialTopVarones?: any[] }) {
   const { token } = useAuth()
-  const [damas, setDamas] = useState<any[]>([])
-  const [varones, setVarones] = useState<any[]>([])
-  const [topDamas, setTopDamas] = useState<any[]>([])
-  const [topVarones, setTopVarones] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [damas, setDamas] = useState<any[]>(initialDamas || [])
+  const [varones, setVarones] = useState<any[]>(initialVarones || [])
+  const [topDamas, setTopDamas] = useState<any[]>(initialTopDamas || [])
+  const [topVarones, setTopVarones] = useState<any[]>(initialTopVarones || [])
+  const [loading, setLoading] = useState(!initialDamas)
 
   const headers = { Authorization: `Bearer ${token}` }
 
   useEffect(() => {
+    if (initialDamas) return
     Promise.all([
       fetch('/api/teams/positions', { headers }).then(r => r.json()),
       fetch('/api/dashboard', { headers }).then(r => r.json()),
