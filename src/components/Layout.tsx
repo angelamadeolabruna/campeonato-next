@@ -7,7 +7,7 @@ import {
   Trophy, CreditCard, FileDown, LogOut, Menu, X, Goal,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,9 +29,8 @@ const bottomNav = [
 ]
 
 const pageVariants = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' as const } },
-  exit: { opacity: 0, y: -8, transition: { duration: 0.15 } },
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.15, ease: 'easeOut' as const } },
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -90,7 +89,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {navItems.map(item => {
             const isActive = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
             return (
-              <button key={item.to} onClick={() => { router.push(item.to); setSidebarOpen(false) }}
+              <button key={item.to} onClick={() => { router.push(item.to); setSidebarOpen(false) }} onMouseEnter={() => router.prefetch(item.to)}
                 className={`group relative flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left transition-all duration-150 overflow-hidden ${isActive
                   ? 'text-amber-accent font-semibold'
                   : 'text-stone-400 hover:text-stone-200 hover:bg-sidebar-hover'}`}>
@@ -130,17 +129,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </h1>
         </header>
         <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7 pb-22 lg:pb-7">
-          <AnimatePresence mode="wait">
-            <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate">
+            {children}
+          </motion.div>
         </main>
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-lg border-t border-border flex justify-around items-center px-1 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
           {bottomNav.map(item => {
             const isActive = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
             return (
-              <button key={item.to} onClick={() => router.push(item.to)}
+              <button key={item.to} onClick={() => router.push(item.to)} onMouseEnter={() => router.prefetch(item.to)}
                 className={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] min-w-0 transition-colors relative ${isActive ? 'text-amber-accent font-semibold' : 'text-stone-400 hover:text-stone-600'}`}>
                 {isActive && <div className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-0.5 bg-amber-accent rounded-full" />}
                 <item.icon size={20} className={isActive ? 'text-amber-accent' : ''} />

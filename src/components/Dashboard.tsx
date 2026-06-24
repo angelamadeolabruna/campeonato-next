@@ -5,7 +5,9 @@ import { useAuth } from './AuthProvider'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { motion } from 'framer-motion'
 import { Users, UserCircle, Goal, Swords, AlertTriangle, Trophy, Clock, Ban, DollarSign } from 'lucide-react'
-import VoiceAssistant from './VoiceAssistant'
+import dynamic from 'next/dynamic'
+
+const VoiceAssistant = dynamic(() => import('./VoiceAssistant'), { ssr: false })
 
 interface DashboardData {
   kpis: any; golesPorFecha: any[]; tarjetas: any
